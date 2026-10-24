@@ -44,6 +44,7 @@ import {
 } from '../../../lib/state';
 import Modal from '../../Modal';
 import FunctionPlotter from './FunctionPlotter';
+import ConversationView from '../../ConversationView';
 
 const API_KEY =
   typeof process !== 'undefined' && process.env
@@ -1734,6 +1735,7 @@ export default function KeynoteCompanion() {
         
         <div className="main-view-content">
             <div className="document-editor-container">
+              {documentMode === 'chat' && <ConversationView />}
               {documentMode === 'editor' && (
                 <>
                   <div className="document-toolbar">

@@ -1,6 +1,9 @@
 import { GoogleGenAI } from '@google/genai';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { DEFAULT_LIVE_API_MODEL } from '../lib/constants';
+
+// Keep this value local to the serverless function so Node can load it without
+// resolving a TypeScript-only shared module at runtime.
+const DEFAULT_LIVE_API_MODEL = 'gemini-2.5-flash-native-audio-preview-09-2025';
 
 export default async function handler(
   req: IncomingMessage,

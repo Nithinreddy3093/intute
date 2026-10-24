@@ -52,7 +52,7 @@ export default async function handler(
     const token = await ai.authTokens.create({
       config: {
         uses: 1,
-        expireTime: new Date(now + 5 * 60 * 1000).toISOString(),
+        expireTime: new Date(now + 30 * 60 * 1000).toISOString(),
         newSessionExpireTime: new Date(now + 60 * 1000).toISOString(),
         liveConnectConstraints: {
           model: DEFAULT_LIVE_API_MODEL,

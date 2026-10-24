@@ -134,7 +134,7 @@ export const useAgent = create<{
   reset: () => set({ current: Alice }),
 }));
 
-export type DocumentMode = 'rendered' | 'editor';
+export type DocumentMode = 'rendered' | 'chat' | 'editor';
 
 /**
  * `useUI` Store
@@ -303,6 +303,41 @@ export type TranscriptEntry = {
   text: string;
 };
 
+const TRANSCRIPT_STORAGE_KEY = 'intute.lessonTranscript.v1';
+const MAX_SAVED_TRANSCRIPT_ENTRIES = 1000;
+
+function isTranscriptEntry(value: unknown): value is TranscriptEntry {
+  if (!value || typeof value !== 'object') return false;
+  const entry = value as Record<string, unknown>;
+  return typeof entry.speaker === 'string' && typeof entry.text === 'string';
+}
+
+function loadSavedTranscript(): TranscriptEntry[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const saved = window.localStorage.getItem(TRANSCRIPT_STORAGE_KEY);
+    if (!saved) return [];
+    const parsed: unknown = JSON.parse(saved);
+    return Array.isArray(parsed)
+      ? parsed.filter(isTranscriptEntry).slice(-MAX_SAVED_TRANSCRIPT_ENTRIES)
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistTranscript(transcript: TranscriptEntry[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(
+      TRANSCRIPT_STORAGE_KEY,
+      JSON.stringify(transcript.slice(-MAX_SAVED_TRANSCRIPT_ENTRIES)),
+    );
+  } catch {
+    // Keep the live lesson usable if browser storage is unavailable or full.
+  }
+}
+
 // Defines the shape for an entry in the audio log, storing the raw audio blob.
 export type AudioLogEntry = {
   speaker: string;
@@ -319,15 +354,28 @@ export const useSessionStore = create<{
   setDocumentContent: (content: string | ((prev: string) => string)) => void;
   clearSession: () => void;
 }>(set => ({
-  transcript: [],
-  addTranscriptEntry: (entry) => set(state => ({ transcript: [...state.transcript, entry] })),
+  transcript: loadSavedTranscript(),
+  addTranscriptEntry: (entry) => set(state => {
+    const transcript = [...state.transcript, entry].slice(-MAX_SAVED_TRANSCRIPT_ENTRIES);
+    persistTranscript(transcript);
+    return { transcript };
+  }),
   audioLog: [],
   addAudioLogEntry: (entry) => set(state => ({ audioLog: [...state.audioLog, entry] })),
   documentContent: 'As you talk, your teacher will update the lesson notes here...',
   setDocumentContent: (content) => set(state => ({
     documentContent: typeof content === 'function' ? content(state.documentContent) : content
   })),
-  clearSession: () => set({ transcript: [], audioLog: [], documentContent: 'As you talk, your teacher will update the lesson notes here...' }),
+  clearSession: () => {
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.removeItem(TRANSCRIPT_STORAGE_KEY);
+      } catch {
+        // Ignore unavailable browser storage.
+      }
+    }
+    set({ transcript: [], audioLog: [], documentContent: 'As you talk, your teacher will update the lesson notes here...' });
+  },
 }));
 
 /**

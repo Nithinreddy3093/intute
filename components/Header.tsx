@@ -195,6 +195,14 @@ export default function Header() {
           </span>
           Lesson
         </button>
+        <button
+          className={c({ active: documentMode === 'chat' })}
+          onClick={() => setDocumentMode('chat')}
+          title="Voice conversation history"
+        >
+          <span className="icon" style={{ fontSize: '20px', marginRight: '4px' }}>forum</span>
+          Chat
+        </button>
         <button 
           className={c({ active: documentMode === 'editor' })}
           onClick={() => setDocumentMode('editor')}

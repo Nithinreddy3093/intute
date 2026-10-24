@@ -67,7 +67,7 @@ export class GenAILiveClient {
 
   public readonly model: string = DEFAULT_LIVE_API_MODEL;
 
-  protected readonly client: GoogleGenAI;
+  protected client?: GoogleGenAI;
   protected session?: Session;
 
   private _status: 'connected' | 'disconnected' | 'connecting' = 'disconnected';
@@ -75,9 +75,18 @@ export class GenAILiveClient {
     return this._status;
   }
 
-  constructor(apiKey: string, model?: string) {
+  constructor(apiKey?: string, model?: string) {
     if (model) this.model = model;
-    this.client = new GoogleGenAI({ apiKey: apiKey });
+    if (apiKey) this.client = new GoogleGenAI({ apiKey });
+  }
+
+  /**
+   * Installs a short-lived Gemini Live API token before opening a session.
+   */
+  public setApiKey(apiKey: string) {
+    if (!apiKey) throw new Error('A Gemini Live API token is required.');
+    this.disconnect();
+    this.client = new GoogleGenAI({ apiKey });
   }
 
   /**
@@ -87,6 +96,12 @@ export class GenAILiveClient {
    */
   public async connect(config: LiveConnectConfig): Promise<boolean> {
     if (this._status === 'connected' || this._status === 'connecting') {
+      return false;
+    }
+
+    const client = this.client;
+    if (!client) {
+      this.emitter.emit('error', new ErrorEvent('Missing short-lived Gemini Live API token'));
       return false;
     }
 
@@ -106,7 +121,7 @@ export class GenAILiveClient {
     // This is crucial for handling temporary network blips or service unavailability.
     while (attempt < maxRetries) {
       try {
-        this.session = await this.client.live.connect({
+        this.session = await client.live.connect({
           model: this.model,
           config: { ...config },
           callbacks,

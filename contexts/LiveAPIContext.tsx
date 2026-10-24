@@ -26,7 +26,6 @@ const LiveAPIContext = createContext<UseLiveApiResults | undefined>(undefined);
 
 export type LiveAPIProviderProps = {
   children: ReactNode;
-  apiKey: string;
 };
 
 /**
@@ -34,11 +33,8 @@ export type LiveAPIProviderProps = {
  * results (including the client instance, connection status, and controls)
  * available to all descendant components via the `useLiveAPIContext` hook.
  */
-export const LiveAPIProvider: FC<LiveAPIProviderProps> = ({
-  apiKey,
-  children,
-}) => {
-  const liveAPI = useLiveApi({ apiKey });
+export const LiveAPIProvider: FC<LiveAPIProviderProps> = ({ children }) => {
+  const liveAPI = useLiveApi();
 
   return (
     <LiveAPIContext.Provider value={liveAPI}>

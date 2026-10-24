@@ -50,23 +50,19 @@ npm install
 
 ### 3. Configure Environment Variables
 
-Create a `.env.local` file in the project root and add:
+For local development, keep `GEMINI_API_KEY` in an ignored `.env.local` file. In Vercel, add it under **Project Settings → Environment Variables** for Production and Preview.
 
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-```
+The browser requests a short-lived, single-use Gemini Live token from the server endpoint. The long-lived `GEMINI_API_KEY` stays on the server and must never be added as a `VITE_*` variable or embedded in the client bundle.
 
-Replace the placeholder with your own API key.
-
-**Security:** Never commit API keys or private credentials to GitHub. Ensure that any Gemini API key used in production is handled securely and is not exposed in browser-delivered code.
+**Security:** Never commit API keys or private credentials to GitHub.
 
 ### 4. Run the Development Server
 
 ```bash
-npm run dev
+vercel dev
 ```
 
-Open the local URL shown in your terminal to use the application.
+This runs the Vite app together with the `/api/live-token` serverless endpoint. Configure the local `GEMINI_API_KEY` before connecting to Gemini.
 
 ### 5. Build for Production
 
@@ -80,13 +76,9 @@ Check `package.json` for the exact scripts supported by the current project.
 
 The project README documents Vercel as a deployment option.
 
-1. Import the GitHub repository into [Vercel](https://vercel.com/).
-2. Confirm that Vite is selected as the framework preset.
-3. Configure the required environment variables.
-4. Verify that the Gemini API integration works in the deployed environment.
-5. Deploy the application and test its main learning workflows.
-
-**Important:** If the application calls Gemini directly from the browser, a secret API key must not be embedded in the client bundle. Use a server-side API endpoint or another secure credential-handling approach.
+1. Import the GitHub repository into [Vercel](https://vercel.com/) and select the Vite preset.
+2. Add `GEMINI_API_KEY` in the project's Production and Preview environment variables. The key is used only by `/api/live-token`, which issues short-lived, single-use tokens for browser Live API sessions.
+3. Deploy the application and verify its main learning workflows.
 
 ## 📂 Project Structure
 

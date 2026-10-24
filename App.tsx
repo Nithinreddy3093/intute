@@ -36,11 +36,6 @@ import cn from 'classnames';
 import FloatingControls from './components/FloatingControls';
 import HelpModal from './components/HelpModal';
 
-const API_KEY =
-  typeof process !== 'undefined' && process.env
-    ? (process.env.API_KEY as string)
-    : undefined;
-
 // Minimum volume level that indicates audio output is occurring.
 // This threshold prevents the avatar from reacting to negligible noise.
 const AUDIO_OUTPUT_DETECTION_THRESHOLD = 0.05;
@@ -332,19 +327,6 @@ function AppContent() {
  *   - <BasicFace>: The visual avatar that animates based on audio volume.
  */
 function App() {
-  // An API key is required. If it's missing, render an error message.
-  if (!API_KEY) {
-    return (
-      <div className="fullscreen-error">
-        <h1>Configuration Error</h1>
-        <p>
-          Missing required environment variable: <code>API_KEY</code>.
-        </p>
-        <p>Please ensure it is configured in your environment to run the app.</p>
-      </div>
-    );
-  }
-
   const { theme } = useUI();
 
   // This effect applies the selected theme's colors as CSS variables to the root element,
@@ -361,7 +343,7 @@ function App() {
 
   return (
     <div className="App">
-      <LiveAPIProvider apiKey={API_KEY}>
+      <LiveAPIProvider>
         <AppContent />
       </LiveAPIProvider>
     </div>

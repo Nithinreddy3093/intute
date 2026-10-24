@@ -50,21 +50,15 @@ export type UseLiveApiResults = {
  * It encapsulates the client initialization, audio streaming setup, connection management,
  * and event handling.
  *
- * @param apiKey The Google AI API key.
  * @param model The specific model to use for the connection.
  * @returns An object containing the client instance, state, and control functions.
  */
 export function useLiveApi({
-  apiKey,
   model = DEFAULT_LIVE_API_MODEL,
 }: {
-  apiKey: string;
   model?: string;
-}): UseLiveApiResults {
-  const client = useMemo(
-    () => new GenAILiveClient(apiKey, model),
-    [apiKey, model]
-  );
+} = {}): UseLiveApiResults {
+  const client = useMemo(() => new GenAILiveClient(undefined, model), [model]);
 
   const audioStreamerRef = useRef<AudioStreamer | null>(null);
 
@@ -135,9 +129,19 @@ export function useLiveApi({
     }
     setIsConnecting(true);
     addPerfLog({ turn: 0, event: 'Live API: Connecting...' });
-    
-    await client.connect(config);
-    setIsConnecting(false);
+
+    try {
+      const response = await fetch('/api/live-token', { method: 'POST' });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || typeof payload.token !== 'string') {
+        throw new Error(payload.error || 'Could not obtain a Gemini Live API token.');
+      }
+
+      client.setApiKey(payload.token);
+      await client.connect(config);
+    } finally {
+      setIsConnecting(false);
+    }
   }, [client, config, addPerfLog]);
 
   const disconnect = useCallback(() => {
